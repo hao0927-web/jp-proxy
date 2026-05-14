@@ -85,11 +85,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Fetch failed: ' + err.message });
   }
 }
-{
-  "version": 2,
-  "functions": {
-    "api/proxy.js": {
-      "runtime": "edge"
-    }
-  }
-}
+
