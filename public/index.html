@@ -223,7 +223,12 @@ async function doParseUrl() {
     if (!res.ok || data.error) {
       setStatus('❌ ' + (data.error || '解析失敗，請確認網址是否為商品頁'), 'err');
     } else {
-      setStatus('✓ 解析成功！', 'ok');
+      if (data.priceIsPlaceholder) {
+  setStatus('✓ 解析成功！價格請參考網頁手動填入', 'ok');
+} else {
+  setStatus('✓ 解析成功！', 'ok');
+}
+
       addItemCard(data, url);
       document.getElementById('mainUrl').value = '';
       setTimeout(() => setStatus(''), 2000);
