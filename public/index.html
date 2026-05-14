@@ -1,1 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本代購系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #E8002D;
+  --black: #111;
+  --gray: #F3F3F3;
+  --border: #E4E4E4;
+  --mid: #888;
+  --gold: #C9973A;
+  --green: #0A7A55;
+  --shadow: 0 2px 16px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans TC', sans-serif; background: var(--gray); color: var(--black); min-height: 100vh; }
+header { background: var(--black); color: white; padding: 0 16px; height: 56px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+.logo-pill { background: var(--red); font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; letter-spacing: 1px; }
+.header-title { font-size: 14px; font-weight: 500; color: #ddd; }
+.rate-chip { margin-left: auto; background: #222; border: 1px solid #333; border-radius: 20px; padding: 4px 10px; display: flex; align-items: center; gap: 6px; }
+.rate-chip span { font-size: 10px; color: #888; }
+.rate-chip input { width: 52px; background: transparent; border: none; outline: none; color: var(--gold); font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; text-align: center; }
+main { max-width: 540px; margin: 0 auto; padding: 16px 12px 80px; }
+.quick-sites { display: flex; gap: 8px; margin-bottom: 16px; }
+.site-chip { flex: 1; background: white; border: 2px solid var(--border); border-radius: 10px; padding: 10px 8px; text-align: center; cursor: pointer; transition: all 0.15s; }
+.site-chip.chiikawa:hover { border-color: #FF7BAC; background: #FFF0F6; }
+.site-chip.nagano:hover { border-color: #7BC4FF; background: #F0F7FF; }
+.site-chip-icon { font-size: 22px; display: block; margin-bottom: 2px; }
+.site-chip-name { font-size: 10px; font-weight: 700; color: var(--mid); }
+.card { background: white; border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 12px; }
+.card-pad { padding: 14px; }
+.section-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--mid); margin-bottom: 10px; }
+.url-row { display: flex; border: 2px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color 0.2s; }
+.url-row:focus-within { border-color: var(--red); }
+.url-input { flex: 1; border: none; outline: none; padding: 12px; font-size: 13px; font-family: 'Noto Sans TC', sans-serif; color: var(--black); min-width: 0; }
+.url-input::placeholder { color: #bbb; }
+.parse-btn { background: var(--red); color: white; border: none; padding: 12px 16px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; white-space: nowrap; }
+.parse-btn:disabled { background: #ddd; cursor: not-allowed; }
+.loading-bar { height: 3px; background: linear-gradient(90deg, var(--red), #ff8fa0, var(--red)); background-size: 200% 100%; animation: loadbar 1s linear infinite; display: none; border-radius: 2px; margin-top: 8px; }
+.loading-bar.show { display: block; }
+@keyframes loadbar { 0%{background-position:0%} 100%{background-position:200%} }
+.status-msg { font-size: 12px; margin-top: 8px; min-height: 18px; color: var(--mid); }
+.status-msg.ok { color: var(--green); font-weight: 600; }
+.status-msg.err { color: var(--red); }
+.parse-hint { font-size: 11px; color: var(--mid); margin-top: 8px; line-height: 1.6; }
+.parse-hint strong { color: var(--black); }
+.product-card { background: white; border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 12px; animation: slideUp 0.25s ease; }
+@keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.pcard-header { background: var(--black); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.pcard-num { font-family: 'Space Mono', monospace; font-size: 10px; color: #888; letter-spacing: 1px; }
+.pcard-site { font-size: 10px; color: #aaa; background: #222; padding: 2px 8px; border-radius: 10px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.remove-btn { background: none; border: none; color: #555; cursor: pointer; font-size: 16px; padding: 2px 4px; line-height: 1; }
+.remove-btn:hover { color: var(--red); }
+.pcard-body { padding: 12px; }
+.product-preview { display: flex; gap: 10px; margin-bottom: 12px; }
+.product-thumb { width: 72px; height: 72px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
+.product-thumb-ph { width: 72px; height: 72px; border-radius: 8px; border: 2px dashed var(--border); flex-shrink: 0; background: var(--gray); display: flex; align-items: center; justify-content: center; font-size: 28px; }
+.product-info { flex: 1; min-width: 0; }
+.product-url-text { font-size: 10px; color: var(--mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; margin-top: 4px; }
+.parsed-badge { display: inline-flex; align-items: center; gap: 3px; background: #E8F5F0; color: var(--green); font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; margin-top: 4px; }
+.field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.field-label { font-size: 11px; color: var(--mid); width: 32px; flex-shrink: 0; font-weight: 500; }
+.req { color: var(--red); }
+.field-input { flex: 1; border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 10px; font-size: 13px; font-family: 'Noto Sans TC', sans-serif; outline: none; color: var(--black); }
+.field-input:focus { border-color: var(--red); }
+.unit-badge { font-size: 11px; color: var(--mid); background: var(--gray); padding: 9px; border-radius: 8px; border: 1.5px solid var(--border); font-family: 'Space Mono', monospace; flex-shrink: 0; }
+.variant-select { flex: 1; border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 10px; font-size: 13px; font-family: 'Noto Sans TC', sans-serif; outline: none; background: white; color: var(--black); }
+.variant-select:focus { border-color: var(--red); }
+.price-result { background: linear-gradient(135deg,#FFF9EC,#FFF4D6); border: 1.5px solid #E8C96A; border-radius: 10px; padding: 11px 13px; display: none; margin-top: 4px; }
+.price-result.show { display: block; }
+.pr-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; }
+.pr-label { font-size: 11px; color: #999; }
+.pr-jpy { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; }
+.pr-twd { font-family: 'Space Mono', monospace; font-size: 19px; font-weight: 700; color: var(--red); }
+.summary-card { background: white; border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 12px; display: none; }
+.sum-header { background: #1a1a1a; color: white; padding: 11px 14px; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+.sum-body { padding: 0 14px; }
+.sum-line { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray); font-size: 13px; }
+.sum-line.total { font-weight: 700; font-size: 15px; border-top: 2px solid var(--black); border-bottom: none; padding-top: 12px; color: var(--red); }
+.sum-name { max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #555; font-size: 12px; }
+.sum-amount { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 13px; }
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+.form-group { background: white; border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 12px; }
+.form-row { display: flex; align-items: center; border-bottom: 1px solid var(--border); }
+.form-row:last-child { border-bottom: none; }
+.form-key { font-size: 11px; color: var(--mid); width: 56px; flex-shrink: 0; padding: 12px; font-weight: 600; }
+.form-input { flex: 1; border: none; outline: none; padding: 12px 8px 12px 4px; font-size: 13px; font-family: 'Noto Sans TC', sans-serif; background: transparent; color: var(--black); }
+.form-input::placeholder { color: #ccc; }
+.payment-card { background: linear-gradient(145deg,#111,#1e1e1e); border-radius: 14px; padding: 18px 16px; margin-bottom: 14px; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+.pay-title { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-bottom: 14px; }
+.pay-rows { display: flex; flex-direction: column; gap: 10px; }
+.pay-row { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #2a2a2a; padding-bottom: 10px; }
+.pay-row:last-child { border-bottom: none; padding-bottom: 0; }
+.pay-key { font-size: 11px; color: #777; }
+.pay-val { font-family: 'Space Mono', monospace; font-size: 13px; color: white; font-weight: 700; }
+.copy-btn { background: #2a2a2a; border: none; color: #999; padding: 4px 9px; border-radius: 6px; font-size: 10px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; }
+.copy-btn:hover { background: var(--gold); color: #000; }
+.pay-amount-box { background: var(--gold); border-radius: 10px; padding: 13px 14px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+.pay-amount-label { font-size: 12px; font-weight: 700; color: #000; }
+.pay-amount-val { font-family: 'Space Mono', monospace; font-size: 21px; font-weight: 700; color: #000; }
+.submit-btn { width: 100%; background: var(--red); color: white; border: none; border-radius: 12px; padding: 17px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; box-shadow: 0 4px 16px rgba(232,0,45,0.3); }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px); background: #111; color: white; padding: 11px 20px; border-radius: 24px; font-size: 13px; transition: transform 0.3s ease; z-index: 999; white-space: nowrap; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 200; align-items: flex-end; justify-content: center; }
+.modal-bg.show { display: flex; }
+.modal-card { background: white; border-radius: 20px 20px 0 0; padding: 28px 24px 40px; width: 100%; max-width: 540px; text-align: center; animation: slideModal 0.3s ease; }
+@keyframes slideModal { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.modal-icon { font-size: 52px; margin-bottom: 12px; }
+.modal-title { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
+.modal-sub { font-size: 13px; color: var(--mid); line-height: 1.7; margin-bottom: 16px; }
+.modal-amount { background: var(--gray); border-radius: 12px; padding: 14px; margin-bottom: 20px; font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; color: var(--red); }
+.modal-close { background: var(--black); color: white; border: none; border-radius: 12px; padding: 14px 32px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo-pill">JP代購</div>
+  <div class="header-title">日本代購系統</div>
+  <div class="rate-chip">
+    <span>匯率 ×</span>
+    <input type="number" id="rateInput" value="0.225" step="0.001" min="0.1" oninput="recalcAll()">
+  </div>
+</header>
+<main>
+  <div class="quick-sites">
+    <div class="site-chip chiikawa" onclick="setHint('chiikawa')">
+      <span class="site-chip-icon">🐭</span>
+      <div class="site-chip-name">吉伊卡哇</div>
+    </div>
+    <div class="site-chip nagano" onclick="setHint('nagano')">
+      <span class="site-chip-icon">🎨</span>
+      <div class="site-chip-name">Nagano Market</div>
+    </div>
+    <div class="site-chip" style="flex:0.7" onclick="addBlank()">
+      <span class="site-chip-icon">✏️</span>
+      <div class="site-chip-name">手動填寫</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-pad">
+      <div class="section-label">貼上商品網址</div>
+      <div class="url-row">
+        <input class="url-input" id="mainUrl" type="url" placeholder="https://chiikawamarket.jp/zh-hant/products/...">
+        <button class="parse-btn" id="parseBtn" onclick="doParseUrl()">解析</button>
+      </div>
+      <div class="loading-bar" id="loadingBar"></div>
+      <div class="status-msg" id="statusMsg"></div>
+      <div class="parse-hint">支援 <strong>🐭 吉伊卡哇 Market</strong>・<strong>🎨 Nagano Market</strong><br>貼上商品頁網址，自動抓取名稱、圖片、規格與價格</div>
+    </div>
+  </div>
+  <div id="itemsArea"></div>
+  <div class="summary-card" id="summaryCard">
+    <div class="sum-header">訂單明細</div>
+    <div class="sum-body" id="summaryBody"></div>
+  </div>
+  <div class="divider"></div>
+  <div class="section-label">收件資訊</div>
+  <div class="form-group">
+    <div class="form-row"><div class="form-key">姓名</div><input class="form-input" id="fName" placeholder="收件人姓名"></div>
+    <div class="form-row"><div class="form-key">電話</div><input class="form-input" id="fPhone" type="tel" placeholder="09xx-xxx-xxx"></div>
+    <div class="form-row"><div class="form-key">地址</div><input class="form-input" id="fAddr" placeholder="台灣收件地址"></div>
+    <div class="form-row"><div class="form-key">LINE</div><input class="form-input" id="fLine" placeholder="LINE ID（選填）"></div>
+    <div class="form-row"><div class="form-key">備註</div><input class="form-input" id="fNote" placeholder="其他要求（選填）"></div>
+  </div>
+  <div class="payment-card" id="payCard">
+    <div class="pay-title">匯款資訊</div>
+    <div class="pay-rows">
+      <div class="pay-row"><div class="pay-key">銀行</div><div class="pay-val">玉山銀行 808</div></div>
+      <div class="pay-row">
+        <div class="pay-key">帳號</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="pay-val">0123-456-789012</div>
+          <button class="copy-btn" onclick="copyText('0123456789012')">複製</button>
+        </div>
+      </div>
+      <div class="pay-row"><div class="pay-key">戶名</div><div class="pay-val">王小明</div></div>
+    </div>
+    <div class="pay-amount-box">
+      <div class="pay-amount-label">應匯金額（台幣）</div>
+      <div class="pay-amount-val" id="payAmountVal">NT$ 0</div>
+    </div>
+  </div>
+  <button class="submit-btn" onclick="submitOrder()">確認送出訂單 →</button>
+</main>
+<div class="toast" id="toast"></div>
+<div class="modal-bg" id="successModal">
+  <div class="modal-card">
+    <div class="modal-icon">🎉</div>
+    <div class="modal-title">訂單已送出！</div>
+    <div class="modal-sub">請在 <strong>24 小時</strong>內完成匯款<br>收到後我們立即為您下單</div>
+    <div class="modal-amount" id="modalAmount">NT$ 0</div>
+    <button class="modal-close" onclick="document.getElementById('successModal').classList.remove('show')">完成</button>
+  </div>
+</div>
+<script>
+const PROXY_URL = 'https://hao0927-web-jp-proxy.vercel.app/api/proxy';
+let items = [], idCounter = 0;
+function getRate() { return parseFloat(document.getElementById('rateInput').value) || 0.225; }
+function setHint(site) {
+  const inp = document.getElementById('mainUrl');
+  inp.value = '';
+  inp.placeholder = site === 'chiikawa' ? 'https://chiikawamarket.jp/zh-hant/products/...' : 'https://nagano-market.jp/products/...';
+  inp.focus();
+}
+function setStatus(msg, type) {
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg;
+  el.className = 'status-msg' + (type ? ' ' + type : '');
+}
+async function doParseUrl() {
+  const url = document.getElementById('mainUrl').value.trim();
+  if (!url || !url.startsWith('http')) { showToast('請輸入正確的商品網址'); return; }
+  document.getElementById('parseBtn').disabled = true;
+  document.getElementById('loadingBar').classList.add('show');
+  setStatus('正在解析商品資訊…');
+  try {
+    const res = await fetch(`${PROXY_URL}?url=${encodeURIComponent(url)}`);
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      setStatus('❌ ' + (data.error || '解析失敗，請確認網址是否為商品頁'), 'err');
+    } else {
+      setStatus('✓ 解析成功！', 'ok');
+      addItemCard(data, url);
+      document.getElementById('mainUrl').value = '';
+      setTimeout(() => setStatus(''), 2000);
+    }
+  } catch(e) {
+    setStatus('❌ 連線失敗，請稍後再試', 'err');
+  }
+  document.getElementById('parseBtn').disabled = false;
+  document.getElementById('loadingBar').classList.remove('show');
+}
+function addItemCard(data, url) {
+  if (items.length >= 10) { showToast('最多10件商品'); return; }
+  const id = ++idCounter;
+  const initPrice = data.variants?.length > 0 ? (data.variants[0].price || data.price_jpy) : data.price_jpy;
+  items.push({ id, url: url||'', name: data.name||'', site: data.site||'', price_jpy: initPrice||0, qty: 1 });
+  renderCard(id, data, url);
+  recalcAll();
+}
+function addBlank() { addItemCard({ name:'', site:'手動', price_jpy:0, image:'', variants:[], parsed:false }, ''); }
+function renderCard(id, data, url) {
+  const area = document.getElementById('itemsArea');
+  const div = document.createElement('div');
+  div.className = 'product-card';
+  div.id = `pcard-${id}`;
+  const imgHTML = (data.image && data.image.length > 5) ? `<img class="product-thumb" src="${data.image}" onerror="this.style.display='none'" loading="lazy">` : `<div class="product-thumb-ph">🛍️</div>`;
+  const realVars = (data.variants||[]).filter(v => v.title && v.price > 0);
+  let variantHTML = realVars.length > 1
+    ? `<div class="field-row"><div class="field-label">規格</div><select class="variant-select" id="var-${id}" onchange="onVariantChange(${id})">${realVars.map(v => `<option value="${v.price}"${!v.available?' disabled':''}>${v.title}　¥${v.price.toLocaleString()}${!v.available?' (售完)':''}</option>`).join('')}</select></div>`
+    : `<div class="field-row"><div class="field-label">規格</div><input class="field-input" id="spec-${id}" placeholder="顏色/尺寸（選填）"></div>`;
+  const initPrice = realVars.length > 0 ? (realVars[0].price || data.price_jpy) : data.price_jpy;
+  div.innerHTML = `
+    <div class="pcard-header">
+      <div class="pcard-num">ITEM #${id}</div>
+      <div class="pcard-site">${esc(data.site||'手動')}</div>
+      <button class="remove-btn" onclick="removeItem(${id})">✕</button>
+    </div>
+    <div class="pcard-body">
+      <div class="product-preview">
+        ${imgHTML}
+        <div class="product-info">
+          <input class="field-input" id="name-${id}" value="${esc(data.name)}" placeholder="商品名稱" style="padding:5px 0;font-size:13px;font-weight:600;border-color:transparent;background:transparent;width:100%" oninput="onNameChange(${id})">
+          ${data.parsed ? '<span class="parsed-badge">✓ 自動解析</span>' : ''}
+          ${url ? `<span class="product-url-text">${url.substring(0,52)}${url.length>52?'…':''}</span>` : ''}
+        </div>
+      </div>
+      ${variantHTML}
+      <div class="field-row"><div class="field-label"><span class="req">*</span> 單價</div><input class="field-input" type="number" id="price-${id}" value="${initPrice||''}" placeholder="日幣金額" oninput="calcItem(${id})"><div class="unit-badge">¥</div></div>
+      <div class="field-row"><div class="field-label"><span class="req">*</span> 數量</div><input class="field-input" type="number" id="qty-${id}" value="1" min="1" max="99" style="max-width:72px" oninput="calcItem(${id})"></div>
+      <div class="price-result" id="presult-${id}"></div>
+    </div>`;
+  area.appendChild(div);
+  calcItem(id);
+}
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function onVariantChange(id) {
+  const sel = document.getElementById(`var-${id}`);
+  const priceEl = document.getElementById(`price-${id}`);
+  if (sel && priceEl) { priceEl.value = sel.value; calcItem(id); }
+}
+function onNameChange(id) {
+  const item = items.find(i=>i.id===id);
+  if (item) item.name = document.getElementById(`name-${id}`)?.value||'';
+}
+function calcItem(id) {
+  const priceEl = document.getElementById(`price-${id}`);
+  const qtyEl = document.getElementById(`qty-${id}`);
+  const resultEl = document.getElementById(`presult-${id}`);
+  if (!priceEl || !resultEl) return;
+  const price = parseFloat(priceEl.value)||0;
+  const qty = parseInt(qtyEl?.value)||1;
+  const rate = getRate();
+  const twd = Math.ceil(price * qty * rate);
+  const item = items.find(i=>i.id===id);
+  if (item) { item.price_jpy = price; item.qty = qty; }
+  if (price > 0) {
+    resultEl.classList.add('show');
+    resultEl.innerHTML = `<div class="pr-row"><span class="pr-label">日幣單價</span><span class="pr-jpy">¥${price.toLocaleString()}</span></div><div class="pr-row"><span class="pr-label">數量</span><span class="pr-label">× ${qty} 件</span></div><div class="pr-row"><span class="pr-label">台幣合計</span><span class="pr-twd">NT$ ${twd.toLocaleString()}</span></div>`;
+  } else { resultEl.classList.remove('show'); }
+  updateSummary();
+}
+function removeItem(id) {
+  items = items.filter(i=>i.id!==id);
+  document.getElementById(`pcard-${id}`)?.remove();
+  updateSummary();
+}
+function recalcAll() { items.forEach(i=>calcItem(i.id)); updateSummary(); }
+function updateSummary() {
+  const card = document.getElementById('summaryCard');
+  const body = document.getElementById('summaryBody');
+  const rate = getRate();
+  const valid = items.filter(i=>i.price_jpy>0);
+  if (valid.length===0) { card.style.display='none'; document.getElementById('payCard').style.display='none'; return; }
+  card.style.display='block'; document.getElementById('payCard').style.display='block';
+  let totalTwd=0, html='';
+  valid.forEach(item => {
+    const nameEl = document.getElementById(`name-${item.id}`);
+    const name = nameEl?.value||item.name||`商品 #${item.id}`;
+    const twd = Math.ceil(item.price_jpy*item.qty*rate);
+    totalTwd += twd;
+    html += `<div class="sum-line"><span class="sum-name">${esc(name)}${item.qty>1?` ×${item.qty}`:''}</span><span class="sum-amount">NT$ ${twd.toLocaleString()}</span></div>`;
+  });
+  html += `<div class="sum-line total"><span>總計</span><span class="sum-amount">NT$ ${totalTwd.toLocaleString()}</span></div>`;
+  body.innerHTML = html;
+  document.getElementById('payAmountVal').textContent = `NT$ ${totalTwd.toLocaleString()}`;
+}
+function submitOrder() {
+  const name = document.getElementById('fName').value.trim();
+  const phone = document.getElementById('fPhone').value.trim();
+  const addr = document.getElementById('fAddr').value.trim();
+  const valid = items.filter(i=>i.price_jpy>0);
+  if (valid.length===0) return showToast('請先添加商品');
+  if (!name) return showToast('請填寫收件人姓名');
+  if (!phone) return showToast('請填寫聯絡電話');
+  if (!addr) return showToast('請填寫收件地址');
+  const rate = getRate();
+  const total = Math.ceil(valid.reduce((s,i)=>s+i.price_jpy*i.qty*rate,0));
+  document.getElementById('modalAmount').textContent = `NT$ ${total.toLocaleString()}`;
+  document.getElementById('successModal').classList.add('show');
+}
+function copyText(t) { navigator.clipboard.writeText(t).then(()=>showToast('✓ 已複製')); }
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2500);
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('mainUrl').addEventListener('keydown', e => {
+    if (e.key==='Enter') doParseUrl();
+  });
+});
+</script>
+</body>
+</html>
 
